@@ -1,0 +1,8 @@
+{
+  "sources": [
+    {"name": "VPN Gate CSV API", "url": "http://www.vpngate.net/api/iphone/"}
+  ],
+  "max_candidates": 100,
+  "tcp_timeout_seconds": 4,
+  "workers": 40
+}
