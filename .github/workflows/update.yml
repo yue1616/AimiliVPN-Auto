@@ -1,0 +1,55 @@
+name: Update VPN data
+
+on:
+  schedule:
+    - cron: "17 */6 * * *"
+  workflow_dispatch:
+    inputs:
+      run_vps_tests:
+        description: "Run optional tests on your online self-hosted VPS runner"
+        required: true
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -r requirements.txt
+      - run: python src/collector.py --output out --max-candidates 100
+      - uses: actions/upload-artifact@v4
+        with:
+          name: aimili-collector-data
+          path: out/
+          retention-days: 7
+
+  vps-openvpn-test:
+    if: github.event_name == 'workflow_dispatch' && inputs.run_vps_tests == true
+    needs: collect
+    runs-on: [self-hosted, linux, x64, aimili-vpn]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: aimili-collector-data
+          path: out
+      - name: Check VPS prerequisites
+        run: |
+          command -v openvpn
+          test -c /dev/net/tun
+          sudo -n true
+      - name: Test up to five OpenVPN sessions
+        run: python3 src/vps_openvpn_verify.py --input out/vps_candidates.json --output out/vps_results.json --limit 5 --timeout 25
+      - uses: actions/upload-artifact@v4
+        with:
+          name: aimili-vps-verification
+          path: out/vps_results.json
+          if-no-files-found: error
+          retention-days: 7
