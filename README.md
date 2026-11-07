@@ -15,11 +15,11 @@
 | VPN Gate CSV 采集 | 已实现 |
 | OpenVPN 配置提取 | 已实现 |
 | TCP 连通性检测 | 已实现 |
-| VPS OpenVPN 会话建立验证 | 可选 |
+| VPS OpenVPN 实际会话建立验证 | 已加入验证器，需自有 VPS runner |
 | SSTP / L2TP-IPsec / SoftEther | 尚未实现 |
 | 自动切换、代理、管理后台 | 尚未实现 |
 
-TCP 可连接不等于 VPN 隧道可用。VPS 验证成功只表示 OpenVPN 会话建立，不代表已验证互联网出口、DNS 或吞吐量。
+TCP 可连接不等于 VPN 隧道可用。VPS 验证成功以 OpenVPN 输出 `Initialization Sequence Completed` 为准，只表示隧道会话已初始化，不代表已验证互联网出口、DNS 或吞吐量。
 
 ## 使用
 1. 在 GitHub 新建私有仓库 `AimiliVPN-Auto`。
