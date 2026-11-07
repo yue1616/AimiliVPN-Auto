@@ -1,0 +1,34 @@
+import unittest
+from src.vps_openvpn_verify import sanitize_profile, redact_log
+
+class VerifyTests(unittest.TestCase):
+    def test_remote_override_and_proto(self):
+        p = 'client\ndev tun\nproto tcp\ncipher AES-128-CBC\nremote old.example 1194\n<ca>\nCA\n</ca>\n'
+        out = sanitize_profile(p, '198.51.100.7', 443)
+        self.assertIn('remote 198.51.100.7 443', out)
+        self.assertNotIn('old.example', out)
+        self.assertIn('proto tcp-client', out)
+        self.assertIn('data-ciphers-fallback AES-128-CBC', out)
+        self.assertIn('route-nopull', out)
+
+    def test_unsafe_directives_removed(self):
+        p = 'client\nproto udp\nremote evil 1\nup /tmp/a\nredirect-gateway def1\nroute 10.0.0.0 255.0.0.0\n'
+        out = sanitize_profile(p, '203.0.113.9', 1194)
+        for item in ('evil', 'up ', 'redirect-gateway', 'route 10.'):
+            self.assertNotIn(item, out)
+
+    def test_invalid_endpoint_and_unclosed_block(self):
+        with self.assertRaises(ValueError):
+            sanitize_profile('<ca>\nmissing close', '203.0.113.1', 1194)
+        with self.assertRaises(ValueError):
+            sanitize_profile('client', 'bad host', 1194)
+        with self.assertRaises(ValueError):
+            sanitize_profile('client', '203.0.113.1', 70000)
+
+    def test_log_redaction(self):
+        out = redact_log('password hunter2 auth-token abc123')
+        self.assertNotIn('hunter2', out)
+        self.assertNotIn('abc123', out)
+
+if __name__ == '__main__':
+    unittest.main()
