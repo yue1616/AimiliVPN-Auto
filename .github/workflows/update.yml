@@ -46,7 +46,7 @@ jobs:
           test -c /dev/net/tun
           sudo -n true
       - name: Test up to five OpenVPN sessions
-        run: python3 src/vps_openvpn_verify.py --input out/vps_candidates.json --output out/vps_results.json --limit 5 --timeout 25
+        run: python3 src/vps_openvpn_verify.py --input out/vps_candidates.json --output out/vps_results.json --limit 5 --timeout 35
       - uses: actions/upload-artifact@v4
         with:
           name: aimili-vps-verification
